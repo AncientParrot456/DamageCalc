@@ -14,7 +14,7 @@ def calculate():
 
 
     # Run calculation
-    results = calculations.get_volley_results(
+    shield_df, armor_df, comp_df = calculations.get_volley_results(
         shield=shield,
         armor=armor,
         mod='fighter_laser',
@@ -26,10 +26,16 @@ def calculate():
     result_box.delete("1.0", tk.END)
 
 
-    result_box.insert(
-        tk.END,
-        results.round(2).to_string()
+    results_text = (
+        "SHIELD RESULTS\n\n"
+        + shield_df.round(2).to_string(index=False)
+        + "\n\nARMOR RESULTS\n\n"
+        + armor_df.round(2).to_string(index=False)
+        + "\n\nCOMPONENT DAMAGE\n\n"
+        + comp_df.round(2).to_string(index=False)
     )
+
+    result_box.insert(tk.END, results_text)
 
 """
     # Display results
