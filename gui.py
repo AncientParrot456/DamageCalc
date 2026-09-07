@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 
 import calculations
 
@@ -32,16 +35,17 @@ def calculate():
     # -----End of error handling
 
     # Get selected weapon
-    weapon1 = weapon_combo1.get()
-    weapon2 = weapon_combo2.get()
-    weapon3 = weapon_combo3.get()
 
-    weapon_combo_list = [weapon1]
+    weapon_selection_tuple = (
+        weapon_combo1.get(),
+        weapon_combo2.get(),
+        weapon_combo3.get()
+    )
 
-    if weapon2 != 'None':
-        weapon_combo_list+=[weapon2]
-    if weapon3 != 'None':
-        weapon_combo_list+=[weapon3]
+    weapon_combo_list = [
+        weapon for weapon in weapon_selection_tuple
+        if weapon != "None"
+    ]
 
     # Run calculation
     shield_df, armor_df, comp_df = calculations.get_volley_results(
@@ -52,21 +56,40 @@ def calculate():
         n=11
     )
 
-
     # Clear previous results
     result_box.delete("1.0", tk.END)
 
 
     results_text = (
         "SHIELD RESULTS\n\n"
-        + shield_df.round(2).to_string(index=False)
+        + shield_df.round(1).to_string(index=False)
         + "\n\nARMOR RESULTS\n\n"
-        + armor_df.round(2).to_string(index=False)
+        + armor_df.round(1).to_string(index=False)
         + "\n\nCOMPONENT DAMAGE\n\n"
-        + comp_df.round(2).to_string(index=False)
+        + comp_df.round(1).to_string(index=False)
     )
 
     result_box.insert(tk.END, results_text)
+
+    # Clear previous chart
+    for widget in chart_frame.winfo_children():
+        widget.destroy()
+
+    fig = calculations.display_calc_volley(
+    shield=shield,
+    armor=armor,
+    mod='fighter_laser',
+    weaponlist=weapon_combo_list,
+    n=11
+    )
+
+    volley_canvas = FigureCanvasTkAgg(fig, master=chart_frame)
+    volley_canvas.draw()
+
+    volley_canvas.get_tk_widget().pack(
+    fill="both",
+    expand=True
+    )
 
 
 # --------------------------------------------------
@@ -76,7 +99,7 @@ def calculate():
 root = tk.Tk()
 
 root.title("JTL Damage Calculator")
-root.geometry("500x600")
+root.geometry("800x1000")
 
 # --------------------------------------------------
 # Shield
@@ -138,21 +161,12 @@ weapon_combo3.current(0)
 
 calculate_button = ttk.Button(
     root,
-    text="Show Damages",
+    text="Calculate",
     command=calculate
 )
 
-calculate_button.pack(pady=20)
+calculate_button.pack(pady=10)
 
-'''
-chart_button = ttk.Button(
-    root,
-    text="Show Chart",
-    command=show_chart
-)
-
-chart_button.pack(pady=5)
-'''
 
 # --------------------------------------------------
 # Results
@@ -163,10 +177,17 @@ ttk.Label(root, text="Results").pack()
 result_box = tk.Text(
     root,
     width=100,
-    height=25
+    height=10
 )
 
 result_box.pack(padx=20, pady=10)
+
+# --------------------------------------------------
+# Chart
+# --------------------------------------------------
+
+chart_frame = ttk.Frame(root)
+chart_frame.pack(padx=20, pady=10, fill="both", expand=True)
 
 # --------------------------------------------------
 # Start application
