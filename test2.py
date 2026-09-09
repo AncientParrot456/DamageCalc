@@ -14,7 +14,7 @@ calculations.get_volley_results(
     )
 """
 
-#calculations.calc_volley(shield=1000,armor=1000,mod='fighter_laser',weaponlist=['W0'],n=15)
-#calculations.display_calc_volley(shield=1000,armor=1000,mod='fighter_laser',weaponlist=['W0'],n=15)
+calculations.calc_volley(shield=1000,armor=1000,mod='fighter_laser',weaponlist=['W0'],n=15)
+#calculations.display_calc_volley(shield=1000,armor=1000,mod='fighter_laser',weaponlist=['W0'],n=21)
 
-calculations.get_volley_results(1000, 1000, mod='fighter_laser',weaponlist=['W0'])
+#calculations.get_volley_results(1000, 1000, mod='fighter_laser',weaponlist=['W0'])

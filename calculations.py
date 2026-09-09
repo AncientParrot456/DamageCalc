@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import sys
 from itertools import permutations
 
+
+
 df = pd.read_csv('Weapon_Data.csv',index_col=['Weapon','Tier'],usecols=['Weapon','Tier','Type','Min','Max','VSS','VSA'])
 np.set_printoptions(suppress=True, precision=2,threshold=sys.maxsize)
 TierList = df.index.get_level_values('Tier').unique().tolist()
@@ -78,13 +80,25 @@ custom_weapons = [
 # ------------------- Main Functions --------------------
     
 
-def calc_volley(shield,armor,mod,weaponlist,custom_weapons=None,compdmg=0,n=11):
+def calc_volley(shield,armor,mod,weaponlist,compdmg=0,n=21,custom_max_list=None
+                ,custom_min_list=None,custom_vss_list=None,custom_vsa_list=None):
 
     shield0 = shield
     armor0 = armor
     comp0 = compdmg
 
     shield_list, armor_list, comp_list = [],[],[]
+
+    '''
+    Don't think needed
+
+    if custom_max_list is not None:
+        wpn_max = np.append(wpn_max, custom_max_list)
+    if custom_vss_list is not None:
+        wpn_vss = np.append(wpn_vss, custom_vss_list)
+    if custom_vsa_list is not None:
+        wpn_vsa = np.append(wpn_vsa, custom_vsa_list)
+    '''
     
     # For each permutation of weapon order
     for arr in permutations(weaponlist):
@@ -96,18 +110,14 @@ def calc_volley(shield,armor,mod,weaponlist,custom_weapons=None,compdmg=0,n=11):
 
         # Now run damage calc sequentially on ordered gunlist
         for i in range(len(weaponlist)):
-            output = calc_single_v1(shield,armor,mod,arr[i],n,comp_dmg)
+            if custom_min_list is not None:
+                output = calc_single_v1(shield,armor,mod,arr[i],n,comp_dmg,custom_min_list[i],custom_max_list[i],custom_vss_list[i],custom_vsa_list[i])
+            else:
+                output = calc_single_v1(shield,armor,mod,arr[i],n,comp_dmg)
             shield = output[0]
             armor = output[1]
             comp_dmg = output[2]
-
-             # Test Output
-            #print("Shield")
-            #print(shield)
-            #print("Armor")
-            #print(armor)
-
-        
+     
         # Now unpack results and add to running list
         shield, armor, comp_dmg = flatten(shield), flatten(armor),flatten(comp_dmg)
 
@@ -122,9 +132,14 @@ def calc_volley(shield,armor,mod,weaponlist,custom_weapons=None,compdmg=0,n=11):
     return final_shield,final_armor,final_comp
 
     
-def display_calc_volley(shield,armor,mod,weaponlist,custom_weapons=None,compdmg=0,n=11):
+def display_calc_volley(shield,armor,mod,weaponlist,compdmg=0,n=21,custom_max_list=None,custom_min_list=None,custom_vss_list=None,custom_vsa_list=None):
        
-    final_shield,final_armor,final_comp=calc_volley(shield,armor,mod,weaponlist,custom_weapons,compdmg,n)
+    final_shield,final_armor,final_comp=calc_volley(shield,armor,mod,weaponlist,compdmg,n,custom_max_list,custom_min_list,custom_vss_list,custom_vsa_list)
+
+    # Add Custom Labels if custom values present
+    Tier_list = TierList.copy()
+    if custom_max_list is not None:
+        Tier_list.append('Custom')
 
     # Calculate IQR Output
 
@@ -134,7 +149,8 @@ def display_calc_volley(shield,armor,mod,weaponlist,custom_weapons=None,compdmg=
     fig, ax = plt.subplots(figsize=(8, 7))
  
     ax.boxplot([Output1[:, i] for i in range(Output1.shape[1])])
-    ax.axhline(y=armor, color='red', linestyle='--', linewidth=1)
+    ax.axhline(y=armor, color='orange', linestyle='--', linewidth=1)
+    ax.axhline(y=0, color='red', linestyle='--', linewidth=1)
     
     ymin = Output1.min()
     if ymin>0:
@@ -145,27 +161,34 @@ def display_calc_volley(shield,armor,mod,weaponlist,custom_weapons=None,compdmg=
     ax.set_ylim(ymin, ymax)
     ax.axhspan(0, armor, facecolor='lightsalmon', alpha=0.3, label='Low range')
     ax.axhspan(armor, shield+armor, facecolor='lightblue', alpha=0.3, label='Mid range')
-    ax.axhspan(-10000, 0, facecolor='red', alpha=0.3, label='Mid range')
+    ax.axhspan(-100000, 0, facecolor='red', alpha=0.3, label='Mid range')
     ax.set_xticks(range(1, Output1.shape[1] + 1))
-    ax.set_xticklabels([TierList[i] for i in range(Output1.shape[1])])
+    ax.set_xticklabels([Tier_list[i] for i in range(Output1.shape[1])])
     ax.set_xlabel("Attacker Weapon Quality")
     ax.set_ylabel("Protection Remaining")
-    #ax.title(' '.join(weaponlist) +" vs "+str(shield0)+" shield "+str(armor0)+" armor")
-    ax.set_title('Test')
+    ax.set_title(' '.join(weaponlist) +" vs "+str(shield)+" shield "+str(armor)+" armor")
+    #ax.set_title('Test')
     fig.tight_layout()
     return fig
     
 
 
-def get_volley_results(shield, armor, mod,weaponlist,compdmg=0,n=11):
+def get_volley_results(shield, armor, mod,weaponlist,compdmg=0,n=21,custom_max_list=None
+                ,custom_min_list=None,custom_vss_list=None,custom_vsa_list=None):
 
+    # Run the volley calculation
     final_shield,final_armor,final_comp = calc_volley(shield=shield,
         armor=armor,
         mod=mod,
         weaponlist=weaponlist,
         compdmg=compdmg,
-        n=n)
+        n=n,
+        custom_max_list=custom_max_list,
+        custom_min_list=custom_min_list,
+        custom_vss_list=custom_vss_list,
+        custom_vsa_list=custom_vsa_list)
 
+    # Calculate min and max for each tier
     min_shield = final_shield.min(axis=1)
     max_shield = final_shield.max(axis=1)
 
@@ -175,10 +198,20 @@ def get_volley_results(shield, armor, mod,weaponlist,compdmg=0,n=11):
     min_comp = final_comp.min(axis=1)
     max_comp = final_comp.max(axis=1)
 
+    # Add Custom Labels if custom values present
+
+    
+
+    Tier_list = TierList.copy()
+    #print(Tier_list)
+    if custom_max_list is not None:
+        Tier_list.append('Custom')
+    
+    #print(Tier_list)
         
     shield_df = pd.DataFrame(
         {
-            'Tiers': TierList,
+            'Tiers': Tier_list,
             'Min Shield Remaining': min_shield,
             'Max Shield Remaining': max_shield
         },
@@ -186,7 +219,7 @@ def get_volley_results(shield, armor, mod,weaponlist,compdmg=0,n=11):
 
     armor_df = pd.DataFrame(
             {
-                'Tiers': TierList,
+                'Tiers': Tier_list,
                 'Min Armor Remaining': min_armor,
                 'Max Armor Remaining': max_armor
             },
@@ -194,51 +227,59 @@ def get_volley_results(shield, armor, mod,weaponlist,compdmg=0,n=11):
 
     comp_df = pd.DataFrame(
             {
-                'Tiers': TierList,
+                'Tiers': Tier_list,
                 'Min Component Damage': min_comp,
                 'Max Component Damage': max_comp
             },
         ) 
-    '''
-    print("final_shield:", final_shield.shape)
-    print("min_shield:", min_shield.shape)
-    print("max_shield:", max_shield.shape)
-
-    print("final_armor:", final_armor.shape)
-    print("min_armor:", min_armor.shape)
-    print("max_armor:", max_armor.shape)
-
-    print("final_comp:", final_comp.shape)
-    print("min_comp:", min_comp.shape)
-    print("max_comp:", max_comp.shape)
-    '''
-
+    
     return shield_df, armor_df, comp_df
     
 
-def calc_single_v1(shield,armor,mod,wpn,n=11,comp_dmg=[0]):
+def calc_single_v1(shield,armor,mod,wpn,n=11,comp_dmg=[0],custom_min=None,custom_max=None,custom_vss=None,custom_vsa=None):
 
-    if isinstance(wpn, str):
-    # Get weapon from df
-        # Import STAJ stats
-        wpn_max = df.loc[:,'Max'][wpn].to_numpy()
-        wpn_min = df.loc[:,'Min'][wpn].to_numpy()
-        wpn_vss = df.loc[:,'VSS'][wpn].to_numpy()
-        wpn_vsa = df.loc[:,'VSA'][wpn].to_numpy()
-        tiers = wpn_max.size  # Grab number of tiers so we know how big to make our arrays i.e. n by tiers
+    '''
 
-    else:
-    # Get stats from custom weapon
-        wpn_max = np.array([wpn['max']])
-        wpn_min = np.array([wpn['min']])
-        wpn_vss = np.array([wpn['vss']])
-        wpn_vsa = np.array([wpn['vsa']])
-        tiers = 1
-    
+    Think redundant
+
+        if isinstance(wpn, str):
+        # Get weapon from df
+            # Import STAJ stats
+            wpn_max = df.loc[:,'Max'][wpn].to_numpy()
+            wpn_min = df.loc[:,'Min'][wpn].to_numpy()
+            wpn_vss = df.loc[:,'VSS'][wpn].to_numpy()
+            wpn_vsa = df.loc[:,'VSA'][wpn].to_numpy()
+
+
+        else:
+        # Get stats from custom weapon
+            wpn_max = np.array([wpn['max']])
+            wpn_min = np.array([wpn['min']])
+            wpn_vss = np.array([wpn['vss']])
+            wpn_vsa = np.array([wpn['vsa']])
+            tiers = 1
+    '''
+
+    wpn_max = df.loc[:,'Max'][wpn].to_numpy()
+    wpn_min = df.loc[:,'Min'][wpn].to_numpy()
+    wpn_vss = df.loc[:,'VSS'][wpn].to_numpy()
+    wpn_vsa = df.loc[:,'VSA'][wpn].to_numpy()
+
+    if custom_min is not None:
+        wpn_min = np.append(wpn_min, np.array([custom_min]))
+    if custom_max is not None:
+        wpn_max = np.append(wpn_max, np.array([custom_max]))
+    if custom_vss is not None:
+        wpn_vss = np.append(wpn_vss, np.array([custom_vss]))
+    if custom_vsa is not None:
+        wpn_vsa = np.append(wpn_vsa, np.array([custom_vsa]))    
+    tiers = wpn_max.size  # Grab number of tiers so we know how big to make our arrays i.e. n by tiers
 
     no_vs = np.ones((tiers))
   
     # Modify min and max with correct mod
+
+    
 
     wpn_min = wpn_min * ol_mod * mod_dict[mod]
     wpn_max = wpn_max * ol_mod * mod_dict[mod]
