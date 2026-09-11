@@ -158,33 +158,62 @@ def display_calc_volley(shield,armor,mod,weaponlist,custom_weapons=None,compdmg=
 
 def get_volley_results(shield, armor, mod,weaponlist,compdmg=0,n=11):
 
-    output0,output1,output2 = calc_volley(shield=shield,
+    final_shield,final_armor,final_comp = calc_volley(shield=shield,
         armor=armor,
         mod=mod,
         weaponlist=weaponlist,
         compdmg=compdmg,
         n=n)
-    
-        
-    columns = TierList
-        
-        
 
-    results = pd.DataFrame(
+    min_shield = final_shield.min(axis=1)
+    max_shield = final_shield.max(axis=1)
+
+    min_armor = final_armor.min(axis=1)
+    max_armor = final_armor.max(axis=1)
+
+    min_comp = final_comp.min(axis=1)
+    max_comp = final_comp.max(axis=1)
+
+        
+    shield_df = pd.DataFrame(
         {
-            'Shield % Remaining': (output0 / shield) * 100,
-            'Armor % Remaining': (output1 / armor) * 100,
-            'Component Damage': output2
+            'Tiers': TierList,
+            'Min Shield Remaining': min_shield,
+            'Max Shield Remaining': max_shield
         },
-        index=columns
-    )
+    ) 
 
-    #return results
-    print(results)
+    armor_df = pd.DataFrame(
+            {
+                'Tiers': TierList,
+                'Min Armor Remaining': min_armor,
+                'Max Armor Remaining': max_armor
+            },
+        ) 
+
+    comp_df = pd.DataFrame(
+            {
+                'Tiers': TierList,
+                'Min Component Damage': min_comp,
+                'Max Component Damage': max_comp
+            },
+        ) 
+    '''
+    print("final_shield:", final_shield.shape)
+    print("min_shield:", min_shield.shape)
+    print("max_shield:", max_shield.shape)
+
+    print("final_armor:", final_armor.shape)
+    print("min_armor:", min_armor.shape)
+    print("max_armor:", max_armor.shape)
+
+    print("final_comp:", final_comp.shape)
+    print("min_comp:", min_comp.shape)
+    print("max_comp:", max_comp.shape)
+    '''
+
+    return shield_df, armor_df, comp_df
     
-
-
-
 
 def calc_single_v1(shield,armor,mod,wpn,n=11,comp_dmg=[0]):
 
