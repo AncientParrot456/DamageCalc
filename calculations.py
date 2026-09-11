@@ -4,10 +4,41 @@ import matplotlib.pyplot as plt
 import sys
 from itertools import permutations
 
+# ------------------- IMPORT CSV --------------------
+
+import os
+import sys
+
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+
+    return os.path.join(os.path.abspath("."), relative_path)
+
+csv_path = resource_path("Weapon_Data.csv")
+
+df = pd.read_csv(
+    csv_path,
+    index_col=['Weapon', 'Tier'],
+    usecols=['Weapon', 'Tier', 'Type', 'Min', 'Max', 'VSS', 'VSA']
+)
+#df = pd.read_csv('Weapon_Data.csv',index_col=['Weapon','Tier'],usecols=['Weapon','Tier','Type','Min','Max','VSS','VSA'])
 
 
-df = pd.read_csv('Weapon_Data.csv',index_col=['Weapon','Tier'],usecols=['Weapon','Tier','Type','Min','Max','VSS','VSA'])
-np.set_printoptions(suppress=True, precision=2,threshold=sys.maxsize)
+
+
+
+
+# PY options for printing arrays
+
+
+#np.set_printoptions(suppress=True, precision=2,threshold=sys.maxsize)
+
+
+
+# ------------------- Global Values ------------------------
+
+
 TierList = df.index.get_level_values('Tier').unique().tolist()
 
 
@@ -148,7 +179,7 @@ def display_calc_volley(shield,armor,mod,weaponlist,compdmg=0,n=21,custom_max_li
 
     fig, ax = plt.subplots(figsize=(8, 7))
  
-    ax.boxplot([Output1[:, i] for i in range(Output1.shape[1])])
+    ax.boxplot([Output1[:, i] for i in range(Output1.shape[1])],medianprops={'color':'black'})
     ax.axhline(y=armor, color='orange', linestyle='--', linewidth=1)
     ax.axhline(y=0, color='red', linestyle='--', linewidth=1)
     
