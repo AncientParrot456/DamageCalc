@@ -130,12 +130,11 @@ def display_calc_volley(shield,armor,mod,weaponlist,custom_weapons=None,compdmg=
 
     Output1 = final_shield + final_armor - final_comp
     Output1 = Output1.transpose()
- 
-    print("Combined Output")
-    print(Output1)
 
-    plt.boxplot([Output1[:, i] for i in range(Output1.shape[1])])
-    plt.axhline(y=armor, color='red', linestyle='--', linewidth=1)
+    fig, ax = plt.subplots(figsize=(8, 7))
+ 
+    ax.boxplot([Output1[:, i] for i in range(Output1.shape[1])])
+    ax.axhline(y=armor, color='red', linestyle='--', linewidth=1)
     
     ymin = Output1.min()
     if ymin>0:
@@ -143,16 +142,18 @@ def display_calc_volley(shield,armor,mod,weaponlist,custom_weapons=None,compdmg=
     else:
         ymin = ymin-500
     ymax = (shield+armor)
-    plt.ylim(ymin,ymax)
-    plt.axhspan(0, armor, facecolor='lightsalmon', alpha=0.3, label='Low range')
-    plt.axhspan(armor, shield+armor, facecolor='lightblue', alpha=0.3, label='Mid range')
-    plt.axhspan(-10000, 0, facecolor='red', alpha=0.3, label='Mid range')
-    plt.xticks(range(1, Output1.shape[1] + 1), [TierList[i] for i in range(Output1.shape[1])])
-    plt.xlabel("Attacker Weapon Quality")
-    plt.ylabel("Protection Remaining")
-    #plt.title(' '.join(weaponlist) +" vs "+str(shield0)+" shield "+str(armor0)+" armor")
-    plt.title('Test')
-    plt.show()
+    ax.set_ylim(ymin, ymax)
+    ax.axhspan(0, armor, facecolor='lightsalmon', alpha=0.3, label='Low range')
+    ax.axhspan(armor, shield+armor, facecolor='lightblue', alpha=0.3, label='Mid range')
+    ax.axhspan(-10000, 0, facecolor='red', alpha=0.3, label='Mid range')
+    ax.set_xticks(range(1, Output1.shape[1] + 1))
+    ax.set_xticklabels([TierList[i] for i in range(Output1.shape[1])])
+    ax.set_xlabel("Attacker Weapon Quality")
+    ax.set_ylabel("Protection Remaining")
+    #ax.title(' '.join(weaponlist) +" vs "+str(shield0)+" shield "+str(armor0)+" armor")
+    ax.set_title('Test')
+    fig.tight_layout()
+    return fig
     
 
 
