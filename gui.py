@@ -86,8 +86,9 @@ def calculate():
     shield_df, armor_df, comp_df = calculations.get_volley_results(
         shield=shield,
         armor=armor,
-        mod='fighter_laser',
+        mod=Target_var.get(),
         weaponlist=weapon_combo_list,
+        shield_mod=shield_adjust_var.get(),
         n=21,
         custom_max_list=custom_max_list,
         custom_min_list=custom_min_list,
@@ -116,8 +117,9 @@ def calculate():
     fig = calculations.display_calc_volley(
         shield=shield,
         armor=armor,
-        mod='fighter_laser',
+        mod=Target_var.get(),
         weaponlist=weapon_combo_list,
+        shield_mod=shield_adjust_var.get(),
         n=21,
         custom_max_list=custom_max_list,
         custom_min_list=custom_min_list,
@@ -152,17 +154,41 @@ section_header1 = ttk.Label(root, text="Defender Stats")
 section_header1.pack(anchor="w", padx=20, pady=(20, 0))
 
 input_frame = ttk.Frame(root)
-input_frame.pack(anchor="w", padx=20, pady=(0, 0))
+input_frame.pack(anchor="w", padx=20, pady=(0, 5))
+
+Target_label = ttk.Label(input_frame, text="Target")
+Target_label.grid(row=0, column=0, sticky="w", pady=(0, 5))
+Target_var = tk.StringVar(value="fighter")
+Target_combo = ttk.Combobox(
+    input_frame,
+    textvariable=Target_var,
+    values=list(calculations.laser_mod_dict.keys()),
+    state="readonly",
+    width=12
+)
+Target_combo.grid(row=0, column=1, sticky="w", pady=(0, 5), padx=(10, 0))
 
 shield_label = ttk.Label(input_frame, text="Shield")
-shield_label.grid(row=0, column=0, sticky="w", pady=(0, 5))
+shield_label.grid(row=1, column=0, sticky="w", pady=(0, 5))
 shield_entry = ttk.Entry(input_frame)
-shield_entry.grid(row=0, column=1, sticky="w", padx=(10, 0), pady=(0, 5))
+shield_entry.grid(row=1, column=1, sticky="w", padx=(10, 0), pady=(0, 5))
+shield_adjust_label = ttk.Label(input_frame, text="Adjustment")
+shield_adjust_label.grid(row=1, column=2, sticky="w", padx=(10, 5), pady=(0, 5))
+shield_adjust_var = tk.StringVar(value="none")
+shield_adjust_combo = ttk.Combobox(
+    input_frame,
+    textvariable=shield_adjust_var,
+    values=list(calculations.adjust_dict.keys()),
+    state="readonly",
+    width=12
+)
+shield_adjust_combo.grid(row=1, column=3, sticky="w", pady=(0, 5))
+
 
 armor_label = ttk.Label(input_frame, text="Armor")
-armor_label.grid(row=1, column=0, sticky="w", pady=(0, 5))
+armor_label.grid(row=2, column=0, sticky="w", pady=(0, 5))
 armor_entry = ttk.Entry(input_frame)
-armor_entry.grid(row=1, column=1, sticky="w", padx=(10, 0), pady=(0, 5))
+armor_entry.grid(row=2, column=1, sticky="w", padx=(10, 0), pady=(0, 5))
 
 # --------------------------------------------------
 # Weapon

@@ -52,13 +52,16 @@ adjust_dict = {
     'extreme': 1.9
 }
 
-mod_dict = {
-    'fighter_laser': 0.375,
-    'fighter_missle': 0.5,
-    'pob_laser': 0.25,
-    'pob_missle': 0.25,
-    'gb_laser': 0.15,
-    'gb_missle': 0.25
+laser_mod_dict = {
+    'fighter': 0.375,
+    'pob': 0.25,
+    'gb': 0.15,
+}
+
+missle_mod_dict = {
+    'fighter': 0.5,
+    'pob': 0.25,
+    'gb': 0.25
 }
 
 ol_mod = 3
@@ -89,34 +92,23 @@ def flatten(arr):
 
 #--------------------Custom Weapon Space -----------------
 
-custom_weapons = [
-    {
-        'name': 'Custom Gun 1',
-        'min': 1000,
-        'max': 2000,
-        'vss': 0.8,
-        'vsa': 0.6
-    },
-    {
-        'name': 'Custom Gun 2',
-        'min': 2500,
-        'max': 3000,
-        'vss': 0.5,
-        'vsa': 0.9
-    }
-]
 
+#Not needed
 
 
 # ------------------- Main Functions --------------------
     
 
-def calc_volley(shield,armor,mod,weaponlist,compdmg=0,n=21,custom_max_list=None
+def calc_volley(shield,armor,mod,weaponlist,shield_mod=None,compdmg=0,n=21,custom_max_list=None
                 ,custom_min_list=None,custom_vss_list=None,custom_vsa_list=None):
 
     shield0 = shield
     armor0 = armor
     comp0 = compdmg
+
+    #Pull shield modifier if present
+    if shield_mod is not None:
+        shield0 = shield0 * adjust_dict[shield_mod]
 
     shield_list, armor_list, comp_list = [],[],[]
 
@@ -138,6 +130,8 @@ def calc_volley(shield,armor,mod,weaponlist,compdmg=0,n=21,custom_max_list=None
         shield = np.array([shield0])
         armor = np.array([armor0])
         comp_dmg = np.array([comp0])
+
+
 
         # Now run damage calc sequentially on ordered gunlist
         for i in range(len(weaponlist)):
@@ -163,9 +157,9 @@ def calc_volley(shield,armor,mod,weaponlist,compdmg=0,n=21,custom_max_list=None
     return final_shield,final_armor,final_comp
 
     
-def display_calc_volley(shield,armor,mod,weaponlist,compdmg=0,n=21,custom_max_list=None,custom_min_list=None,custom_vss_list=None,custom_vsa_list=None):
+def display_calc_volley(shield,armor,mod,weaponlist,shield_mod=None,compdmg=0,n=21,custom_max_list=None,custom_min_list=None,custom_vss_list=None,custom_vsa_list=None):
        
-    final_shield,final_armor,final_comp=calc_volley(shield,armor,mod,weaponlist,compdmg,n,custom_max_list,custom_min_list,custom_vss_list,custom_vsa_list)
+    final_shield,final_armor,final_comp=calc_volley(shield,armor,mod,weaponlist,shield_mod,compdmg,n,custom_max_list,custom_min_list,custom_vss_list,custom_vsa_list)
 
     # Add Custom Labels if custom values present
     Tier_list = TierList.copy()
@@ -204,7 +198,7 @@ def display_calc_volley(shield,armor,mod,weaponlist,compdmg=0,n=21,custom_max_li
     
 
 
-def get_volley_results(shield, armor, mod,weaponlist,compdmg=0,n=21,custom_max_list=None
+def get_volley_results(shield, armor, mod,weaponlist,shield_mod=None,compdmg=0,n=21,custom_max_list=None
                 ,custom_min_list=None,custom_vss_list=None,custom_vsa_list=None):
 
     # Run the volley calculation
@@ -212,6 +206,7 @@ def get_volley_results(shield, armor, mod,weaponlist,compdmg=0,n=21,custom_max_l
         armor=armor,
         mod=mod,
         weaponlist=weaponlist,
+        shield_mod=shield_mod,
         compdmg=compdmg,
         n=n,
         custom_max_list=custom_max_list,
@@ -289,8 +284,18 @@ def calc_single_v1(shield,armor,mod,wpn,n=11,comp_dmg=[0],custom_min=None,custom
             wpn_vss = np.array([wpn['vss']])
             wpn_vsa = np.array([wpn['vsa']])
             tiers = 1
+
+    #Pull shield modifier if present
+    if shield_mod is not None:
+        shield = shield * adjust_dict[shield_mod]
+
+
+
     '''
 
+
+
+    
     wpn_max = df.loc[:,'Max'][wpn].to_numpy()
     wpn_min = df.loc[:,'Min'][wpn].to_numpy()
     wpn_vss = df.loc[:,'VSS'][wpn].to_numpy()
@@ -312,8 +317,8 @@ def calc_single_v1(shield,armor,mod,wpn,n=11,comp_dmg=[0],custom_min=None,custom
 
     
 
-    wpn_min = wpn_min * ol_mod * mod_dict[mod]
-    wpn_max = wpn_max * ol_mod * mod_dict[mod]
+    wpn_min = wpn_min * ol_mod * laser_mod_dict[mod]
+    wpn_max = wpn_max * ol_mod * laser_mod_dict[mod]
 
     # Roll new weapon RNGs
     rng = np.linspace(wpn_min,wpn_max,n)
