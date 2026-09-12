@@ -110,6 +110,9 @@ def calc_volley(shield,armor,mod,weaponlist,shield_mod=None,compdmg=0,n=21,custo
     if shield_mod is not None:
         shield0 = shield0 * adjust_dict[shield_mod]
 
+    print(adjust_dict[shield_mod])
+    print(shield0)
+
     shield_list, armor_list, comp_list = [],[],[]
 
     '''
@@ -158,6 +161,8 @@ def calc_volley(shield,armor,mod,weaponlist,shield_mod=None,compdmg=0,n=21,custo
 
     
 def display_calc_volley(shield,armor,mod,weaponlist,shield_mod=None,compdmg=0,n=21,custom_max_list=None,custom_min_list=None,custom_vss_list=None,custom_vsa_list=None):
+
+    shield_unadjusted=shield
        
     final_shield,final_armor,final_comp=calc_volley(shield,armor,mod,weaponlist,shield_mod,compdmg,n,custom_max_list,custom_min_list,custom_vss_list,custom_vsa_list)
 
@@ -165,6 +170,10 @@ def display_calc_volley(shield,armor,mod,weaponlist,shield_mod=None,compdmg=0,n=
     Tier_list = TierList.copy()
     if custom_max_list is not None:
         Tier_list.append('Custom')
+
+    #Pull shield modifier if present
+    if shield_mod is not None:
+        shield = shield * adjust_dict[shield_mod]
 
     # Calculate IQR Output
 
@@ -191,7 +200,10 @@ def display_calc_volley(shield,armor,mod,weaponlist,shield_mod=None,compdmg=0,n=
     ax.set_xticklabels([Tier_list[i] for i in range(Output1.shape[1])])
     ax.set_xlabel("Attacker Weapon Quality")
     ax.set_ylabel("Protection Remaining")
-    ax.set_title(' '.join(weaponlist) +" vs "+str(shield)+" shield "+str(armor)+" armor")
+    if shield_mod is not None:
+        ax.set_title(' '.join(weaponlist) +" vs "+str(shield)+" shield ("+str(shield_unadjusted)+" "+str(shield_mod)+" adjusted) & " +str(armor)+" armor")
+    else:
+        ax.set_title(' '.join(weaponlist) +" vs "+str(shield)+" shield "+str(armor)+" armor")
     #ax.set_title('Test')
     fig.tight_layout()
     return fig
